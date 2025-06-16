@@ -3,37 +3,30 @@ import requests
 
 app = Flask(__name__)
 
-def get_live_price_yahoo(pair_symbol):
+API_KEY = "2a030314530e42eea9fe5bdf21f53390"
+
+def get_live_price_twelvedata(pair_symbol):
     try:
-        symbol = pair_symbol.upper().replace("/", "") + "=X"
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1m&range=1d"
+        symbol = pair_symbol.upper().replace("/", "")
+        url = f"https://api.twelvedata.com/price?symbol={symbol}&apikey={API_KEY}"
         response = requests.get(url)
 
         if response.status_code != 200:
-            return {"error": f"Yahoo returned status {response.status_code}"}
+            return {"error": f"TwelveData returned status {response.status_code}"}
 
         data = response.json()
 
-        # Check if the chart exists
-        if "chart" not in data or "result" not in data["chart"] or data["chart"]["result"] is None:
-            return {"error": "Invalid or empty result from Yahoo"}
-
-        result = data['chart']['result'][0]
-        meta = result['meta']
-        current_price = meta.get('regularMarketPrice')
-
-        if current_price is None:
-            return {"error": "Price not found in Yahoo response"}
-
-        return {"pair": pair_symbol, "price": current_price}
-
+        if "price" in data:
+            return {"pair": pair_symbol, "price": float(data["price"])}
+        else:
+            return {"error": data.get("message", "Unknown error")}
     except Exception as e:
         return {"error": str(e)}
 
 @app.route("/price")
 def get_price():
     pair = request.args.get("pair", "EUR/USD")
-    result = get_live_price_yahoo(pair)
+    result = get_live_price_twelvedata(pair)
     return jsonify(result)
 
 if __name__ == "__main__":
