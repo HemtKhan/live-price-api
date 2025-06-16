@@ -7,7 +7,7 @@ API_KEY = "2a030314530e42eea9fe5bdf21f53390"
 
 def get_live_price_twelvedata(pair_symbol):
     try:
-        symbol = pair_symbol.upper().replace("/", "")
+        symbol = pair_symbol.upper()  # Keep slash for TwelveData
         url = f"https://api.twelvedata.com/price?symbol={symbol}&apikey={API_KEY}"
         response = requests.get(url)
 
